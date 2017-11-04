@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import os
+import re
 
 import click
 import crayons
@@ -17,28 +18,44 @@ from bs4 import BeautifulSoup
 def main(word, silent):
 
     # http://ordbok.uib.no/perl/ordbok.cgi?OPP=+hei&ant_bokmaal=5&ant_nynorsk=5&ordbok=bokmaal
+    
+    click.echo(word)
+
     url = 'http://ordbok.uib.no/perl/ordbok.cgi'
     params = dict(OPP=word)
     r = requests.get(url, params=params)
+
     soup = BeautifulSoup(r.text, 'html.parser')
-    word_soup = soup.find('div', class_='bob_kolonnenb')
 
-    #for match in word_soup.findAll('span'):
-    #    match.unwrap()
-    for span in word_soup.find_all('span', class_='tydingC kompakt'):
-        print(span['style'])
-        if span.get('style') == 'display: inline;':
-            print(found.get_text())
+    for span in soup.find_all('span', class_='doeme kompakt'):
+        span.decompose()
+        #span.unwrap()
 
-#    for table in word_soup.findAll('table'):
-#        for row in table.findAll('tr'):
-#            for cell in row.findAll('td'):
-#                for div in cell.find_all('div', class_='tyding_utvidet'):
-#                    print(div.get_text())
-    #click.echo(word_soup.find('div', class_='artikkelinnhold'))
+    for span in soup.find_all('div', class_='doeme utvidet'):
+        span.decompose()
+        #span.unwrap()
+
+    for div in soup.find_all('div', class_='doemeliste kompakt'):
+        div.decompose()
+        #span.unwrap()
+
+    for div in soup.find_all('div', class_='tyding kompakt'):
+        div.decompose()
+        #span.unwrap()
+
+    for div in soup.find_all('span', class_='kompakt'):
+        div.decompose()
+        #span.unwrap()
+
+    article = soup.find('div', class_='artikkelinnhold')
+    utvidet_elements = article.find_all('div', class_='utvidet')
+
+    for utvidet_element in utvidet_elements:
+        print()
+        print(re.sub(' +', ' ', utvidet_element.get_text(' ')))
 
     if not silent:
-        click.echo('not silent')
+        pass
 
 if __name__ == "__main__":
     main()
